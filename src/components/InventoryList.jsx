@@ -11,7 +11,6 @@ import {
 import {toast, ToastContainer} from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import * as XLSX from "xlsx"; // ✅ Import XLSX to read Excel files
-import {saveAs} from "file-saver"; // ✅ Import FileSaver to export files
 
 
 const InventoryList = () => {
@@ -23,16 +22,12 @@ const InventoryList = () => {
     const [editingItemId, setEditingItemId] = useState(null);
     const [barcodeInput, setBarcodeInput] = useState("");
     const [inventorySearch, setInventorySearch] = useState("");
-    const [salesSummarySearch, setSalesSummarySearch] = useState("");
-    const [salesLogSearch, setSalesLogSearch] = useState("");
 
     const nameInputRef = useRef(null);
 
     // Pagination settings for each table
     const itemsPerPage = 10;
     const [inventoryPage, setInventoryPage] = useState(1);
-    const [salesSummaryPage, setSalesSummaryPage] = useState(1);
-    const [salesLogPage, setSalesLogPage] = useState(1);
 
     // Function to paginate data for each table
     const getPaginatedData = (data, page) => {
@@ -47,8 +42,6 @@ const InventoryList = () => {
     };
 
     const inventoryItems = getPaginatedData(getFilteredData(inventory, inventorySearch), inventoryPage);
-    const salesSummaryItems = getPaginatedData(getFilteredData(inventory, salesSummarySearch), salesSummaryPage);
-    const salesLogItems = getPaginatedData(getFilteredData(salesLog, salesLogSearch), salesLogPage);
 
     const handleImport = (event) => {
         const file = event.target.files[0];
@@ -161,26 +154,6 @@ const InventoryList = () => {
                     totalItems: inventory.length,
                     searchQuery: inventorySearch,
                     setSearchQuery: setInventorySearch,
-                },
-                {
-                    id: "salesSummaryTable",
-                    title: "Sales Summary",
-                    data: salesSummaryItems,
-                    setPage: setSalesSummaryPage,
-                    totalItems: inventory.length,
-                    searchQuery: salesSummarySearch,
-                    setSearchQuery: setSalesSummarySearch,
-                    summary: true,
-                },
-                {
-                    id: "salesLogTable",
-                    title: "Sales Log",
-                    data: salesLogItems,
-                    setPage: setSalesLogPage,
-                    totalItems: salesLog.length,
-                    searchQuery: salesLogSearch,
-                    setSearchQuery: setSalesLogSearch,
-                    log: true,
                 },
             ].map(({id, title, data, setPage, totalItems, searchQuery, setSearchQuery, summary, log}) => (
                 <div key={id} className="mb-8">

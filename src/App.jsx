@@ -4,7 +4,8 @@ import {BrowserRouter as Router, Route, Routes, NavLink} from "react-router-dom"
 import {InventoryProvider} from "./context/InventoryContext";
 import InventoryList from "./components/InventoryList";
 import ProductCard from "./components/ProductCard";
-import {HomeIcon, CubeIcon, Bars3Icon} from "@heroicons/react/24/outline";
+import Evaluation from "./components/Evaluation";
+import {HomeIcon, CubeIcon, Bars3Icon, ChartPieIcon} from "@heroicons/react/24/outline";
 import {ToastContainer} from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -65,6 +66,15 @@ function App() {
                                 {isSidebarOpen && <span>Product View</span>}
                             </NavLink>
                         </nav>
+                        <NavLink to="/evaluation"
+                                 className={`flex items-center p-3 rounded-md hover:bg-blue-700 transition ${
+                                     isSidebarOpen ? "justify-start space-x-3" : "justify-center"
+                                 }`}
+                        >
+                            <ChartPieIcon className="w-7 h-7 flex-shrink-0"/>
+                            {isSidebarOpen && <span>Evaluation</span>}
+                        </NavLink>
+
                     </aside>
 
                     <main className={`flex-1 p-6 transition-all duration-300 ${isSidebarOpen ? "ml-64" : "ml-16"}`}>
@@ -73,6 +83,7 @@ function App() {
                         <Routes>
                             <Route path="/" element={<InventoryList/>}/>
                             <Route path="/products" element={<ProductCard/>}/>
+                            <Route path="/evaluation" element={<Evaluation/>}/> {/* ✅ New Route */}
                         </Routes>
                     </main>
                 </div>
