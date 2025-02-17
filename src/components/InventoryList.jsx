@@ -10,8 +10,6 @@ import {
 } from "@heroicons/react/24/outline";
 import {toast, ToastContainer} from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import * as XLSX from "xlsx"; // ✅ Import XLSX to read Excel files
-
 
 const InventoryList = () => {
     const {inventory, salesLog, addItem, editItem, removeItem, sellItem} = useContext(InventoryContext);

@@ -1,9 +1,11 @@
-import React, { useContext, useState } from "react";
-import { InventoryContext } from "../context/InventoryContext";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import React, {useContext, useState} from "react";
+import {InventoryContext} from "../context/InventoryContext";
+import {MagnifyingGlassIcon, DocumentArrowDownIcon} from "@heroicons/react/24/outline";
+import * as XLSX from "xlsx"; // ✅ Import XLSX to create Excel files
+import {saveAs} from "file-saver"; // ✅ Import FileSaver to download files
 
 const Evaluation = () => {
-    const { inventory, salesLog } = useContext(InventoryContext);
+    const {inventory, salesLog} = useContext(InventoryContext);
 
     // Search states
     const [salesSummarySearch, setSalesSummarySearch] = useState("");
@@ -29,13 +31,39 @@ const Evaluation = () => {
     const salesSummaryItems = getPaginatedData(getFilteredData(inventory, salesSummarySearch), salesSummaryPage);
     const salesLogItems = getPaginatedData(getFilteredData(salesLog, salesLogSearch), salesLogPage);
 
+    const exportToExcel = (data, fileName, searchQuery) => {
+        // 🔹 Apply filtering BEFORE exporting
+        const fullFilteredData = data.filter(item =>
+            item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.barcode.includes(searchQuery)
+        );
+
+        const worksheet = XLSX.utils.json_to_sheet(fullFilteredData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+
+        // Create and download file
+        const excelBuffer = XLSX.write(workbook, {bookType: "xlsx", type: "array"});
+        const fileData = new Blob([excelBuffer], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+        saveAs(fileData, `${fileName}.xlsx`);
+    };
+
     return (
         <div className="bg-white p-6 shadow-md rounded-lg">
             <h2 className="text-2xl font-bold mb-4">Evaluation</h2>
 
             {/* Sales Summary Table */}
             <div className="mb-8">
-                <h2 className="text-xl font-bold mb-2">Sales Summary</h2>
+                <div className="flex justify-between items-center mb-3">
+                    <h2 className="text-xl font-bold mb-2">Sales Summary</h2>
+                    <button
+                        onClick={() => exportToExcel(inventory, "Sales_Summary", salesSummarySearch)}
+                        className="bg-blue-500 text-white px-3 py-2 rounded-md flex items-center hover:bg-blue-600"
+                    >
+                        <DocumentArrowDownIcon className="w-5 h-5 mr-2"/>Export
+                    </button>
+                </div>
+
                 <div className="flex items-center mb-6 border border-gray-300 rounded-md p-2">
                     <MagnifyingGlassIcon className="w-6 h-6 text-gray-500 mr-2"/>
                     <input
@@ -70,7 +98,7 @@ const Evaluation = () => {
 
                 {/* Pagination */}
                 <div className="flex justify-center mt-4">
-                    {Array.from({ length: Math.ceil(inventory.length / itemsPerPage) }, (_, i) => (
+                    {Array.from({length: Math.ceil(inventory.length / itemsPerPage)}, (_, i) => (
                         <button key={i} onClick={() => setSalesSummaryPage(i + 1)}
                                 className={`px-3 py-1 border ${i + 1 === salesSummaryPage ? "bg-blue-500 text-white" : "hover:bg-blue-200"} rounded-md mx-1`}>
                             {i + 1}
@@ -81,7 +109,16 @@ const Evaluation = () => {
 
             {/* Sales Log Table */}
             <div className="mb-8">
-                <h2 className="text-xl font-bold mb-2">Sales Log</h2>
+                <div className="flex justify-between items-center mb-3">
+                    <h2 className="text-xl font-bold mb-2">Sales Log</h2>
+                    <button
+                        onClick={() => exportToExcel(salesLog, "Sales_Log", salesLogSearch)}
+                        className="bg-blue-500 text-white px-3 py-2 rounded-md flex items-center hover:bg-blue-600"
+                    >
+                        <DocumentArrowDownIcon className="w-5 h-5 mr-2"/>Export
+                    </button>
+                </div>
+
                 <div className="flex items-center mb-6 border border-gray-300 rounded-md p-2">
                     <MagnifyingGlassIcon className="w-6 h-6 text-gray-500 mr-2"/>
                     <input
@@ -116,7 +153,7 @@ const Evaluation = () => {
 
                 {/* Pagination */}
                 <div className="flex justify-center mt-4">
-                    {Array.from({ length: Math.ceil(salesLog.length / itemsPerPage) }, (_, i) => (
+                    {Array.from({length: Math.ceil(salesLog.length / itemsPerPage)}, (_, i) => (
                         <button key={i} onClick={() => setSalesLogPage(i + 1)}
                                 className={`px-3 py-1 border ${i + 1 === salesLogPage ? "bg-blue-500 text-white" : "hover:bg-blue-200"} rounded-md mx-1`}>
                             {i + 1}
