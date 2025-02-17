@@ -1,8 +1,18 @@
 import React, {useContext, useState, useRef} from "react";
 import {InventoryContext} from "../context/InventoryContext";
-import {PencilIcon, TrashIcon, ShoppingCartIcon, PlusCircleIcon, CheckCircleIcon} from "@heroicons/react/24/outline";
+import {
+    PencilIcon,
+    TrashIcon,
+    ShoppingCartIcon,
+    PlusCircleIcon,
+    CheckCircleIcon,
+    MagnifyingGlassIcon
+} from "@heroicons/react/24/outline";
 import {toast, ToastContainer} from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import * as XLSX from "xlsx"; // ✅ Import XLSX to read Excel files
+import {saveAs} from "file-saver"; // ✅ Import FileSaver to export files
+
 
 const InventoryList = () => {
     const {inventory, salesLog, addItem, editItem, removeItem, sellItem} = useContext(InventoryContext);
@@ -12,6 +22,9 @@ const InventoryList = () => {
     const [price, setPrice] = useState("");
     const [editingItemId, setEditingItemId] = useState(null);
     const [barcodeInput, setBarcodeInput] = useState("");
+    const [inventorySearch, setInventorySearch] = useState("");
+    const [salesSummarySearch, setSalesSummarySearch] = useState("");
+    const [salesLogSearch, setSalesLogSearch] = useState("");
 
     const nameInputRef = useRef(null);
 
@@ -26,10 +39,48 @@ const InventoryList = () => {
         return data.slice((page - 1) * itemsPerPage, page * itemsPerPage);
     };
 
-    // Get paginated items for each table
-    const inventoryItems = getPaginatedData(inventory, inventoryPage);
-    const salesSummaryItems = getPaginatedData(inventory, salesSummaryPage);
-    const salesLogItems = getPaginatedData(salesLog, salesLogPage);
+    const getFilteredData = (data, searchQuery) => {
+        return data.filter(item =>
+            item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.barcode.includes(searchQuery)
+        );
+    };
+
+    const inventoryItems = getPaginatedData(getFilteredData(inventory, inventorySearch), inventoryPage);
+    const salesSummaryItems = getPaginatedData(getFilteredData(inventory, salesSummarySearch), salesSummaryPage);
+    const salesLogItems = getPaginatedData(getFilteredData(salesLog, salesLogSearch), salesLogPage);
+
+    const handleImport = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: "array"});
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+
+            // Convert sheet data to JSON
+            const importedData = XLSX.utils.sheet_to_json(worksheet);
+
+            // ✅ Format data to match inventory structure
+            const formattedData = importedData.map((item, index) => ({
+                id: Date.now() + index, // Unique ID
+                name: item.Name || "Unnamed Product",
+                barcode: item.Barcode || `000${index}`,
+                originalStock: item.Stock ? parseInt(item.Stock, 10) : 0,
+                stock: item.Stock ? parseInt(item.Stock, 10) : 0,
+                price: item.Price ? parseFloat(item.Price) : 0,
+            }));
+
+            // ✅ Add imported data to inventory
+            formattedData.forEach((product) => addItem(product));
+            toast.success("Products imported successfully!");
+        };
+
+        reader.readAsArrayBuffer(file);
+    };
 
     return (
         <div className="bg-white p-6 shadow-md rounded-lg">
@@ -95,6 +146,11 @@ const InventoryList = () => {
                 </button>
             </div>
 
+            <div className="mb-4">
+                <label className="block text-gray-700 font-bold mb-2">Import Products</label>
+                <input type="file" accept=".xls,.xlsx" onChange={handleImport} className="border p-2 rounded-md"/>
+            </div>
+
             {/* Tables Section */}
             {[
                 {
@@ -102,7 +158,9 @@ const InventoryList = () => {
                     title: "Current Inventory",
                     data: inventoryItems,
                     setPage: setInventoryPage,
-                    totalItems: inventory.length
+                    totalItems: inventory.length,
+                    searchQuery: inventorySearch,
+                    setSearchQuery: setInventorySearch,
                 },
                 {
                     id: "salesSummaryTable",
@@ -110,7 +168,9 @@ const InventoryList = () => {
                     data: salesSummaryItems,
                     setPage: setSalesSummaryPage,
                     totalItems: inventory.length,
-                    summary: true
+                    searchQuery: salesSummarySearch,
+                    setSearchQuery: setSalesSummarySearch,
+                    summary: true,
                 },
                 {
                     id: "salesLogTable",
@@ -118,11 +178,26 @@ const InventoryList = () => {
                     data: salesLogItems,
                     setPage: setSalesLogPage,
                     totalItems: salesLog.length,
-                    log: true
+                    searchQuery: salesLogSearch,
+                    setSearchQuery: setSalesLogSearch,
+                    log: true,
                 },
-            ].map(({id, title, data, setPage, totalItems, summary, log}) => (
+            ].map(({id, title, data, setPage, totalItems, searchQuery, setSearchQuery, summary, log}) => (
                 <div key={id} className="mb-8">
                     <h2 className="text-xl font-bold mb-2">{title}</h2>
+
+                    {/* 🔹 Individual Search Input for Each Table */}
+                    <div className="flex items-center mb-6 border border-gray-300 rounded-md p-2">
+                        <MagnifyingGlassIcon className="w-6 h-6 text-gray-500 mr-2"/>
+                        <input
+                            type="text"
+                            placeholder="Search by Name or Barcode..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full outline-none text-gray-700"
+                        />
+                    </div>
+
                     <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
                         <table id={id} className="w-full text-sm text-left text-gray-500">
                             <thead className="text-xs text-gray-700 uppercase bg-gray-50">

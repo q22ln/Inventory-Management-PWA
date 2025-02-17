@@ -3,13 +3,12 @@ import {InventoryContext} from '../context/InventoryContext';
 import {ToastContainer} from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {CubeIcon, CurrencyEuroIcon, MagnifyingGlassIcon} from "@heroicons/react/24/outline";
-import {ShoppingCartIcon} from "@heroicons/react/24/outline/index.js"; // ✅ Import Search Icon
+import {ShoppingCartIcon} from "@heroicons/react/24/outline/index.js";
 
 const ProductCard = () => {
     const {inventory, sellItem} = useContext(InventoryContext);
-    const [searchQuery, setSearchQuery] = useState(""); // ✅ State for search input
+    const [searchQuery, setSearchQuery] = useState("");
 
-    // ✅ Filter inventory based on search query
     const filteredInventory = inventory.filter(item =>
         item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.barcode.includes(searchQuery)
@@ -17,12 +16,10 @@ const ProductCard = () => {
 
     return (
         <div className="bg-white p-6 shadow-md rounded-lg">
-            {/* ✅ Toastr Container */}
             <ToastContainer autoClose={1500}/>
 
             <h2 className="text-2xl font-bold mb-4">Product List</h2>
 
-            {/* ✅ Search Bar */}
             <div className="flex items-center mb-6 border border-gray-300 rounded-md p-2">
                 <MagnifyingGlassIcon className="w-6 h-6 text-gray-500 mr-2"/>
                 <input
