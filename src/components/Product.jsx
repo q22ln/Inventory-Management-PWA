@@ -45,7 +45,7 @@ const Product = ({item, sellItem}) => {
                 </li>
             </ul>
 
-            {/* ✅ Manual Sell Button */}Å
+            {/* ✅ Manual Sell Button */}
             <button
                 type="button"
                 className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-200
