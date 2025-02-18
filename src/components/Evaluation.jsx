@@ -1,8 +1,8 @@
-import React, {useContext, useState} from "react";
+import  {useContext, useState} from "react";
 import {InventoryContext} from "../context/InventoryContext";
 import {MagnifyingGlassIcon, DocumentArrowDownIcon} from "@heroicons/react/24/outline";
-import * as XLSX from "xlsx"; // ✅ Import XLSX to create Excel files
-import {saveAs} from "file-saver"; // ✅ Import FileSaver to download files
+import * as XLSX from "xlsx";
+import {saveAs} from "file-saver";
 
 const Evaluation = () => {
     const {inventory, salesLog} = useContext(InventoryContext);

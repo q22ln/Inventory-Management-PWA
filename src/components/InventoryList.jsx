@@ -1,4 +1,4 @@
-import React, {useContext, useState, useRef} from "react";
+import {useEffect, useContext, useState, useRef} from "react";
 import {InventoryContext} from "../context/InventoryContext";
 import {
     PencilIcon,
@@ -10,6 +10,7 @@ import {
 } from "@heroicons/react/24/outline";
 import {toast, ToastContainer} from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import * as XLSX from "xlsx";
 
 const InventoryList = () => {
     const {inventory, salesLog, addItem, editItem, removeItem, sellItem} = useContext(InventoryContext);
@@ -20,6 +21,7 @@ const InventoryList = () => {
     const [editingItemId, setEditingItemId] = useState(null);
     const [barcodeInput, setBarcodeInput] = useState("");
     const [inventorySearch, setInventorySearch] = useState("");
+    const inputRef = useRef(null);
 
     const nameInputRef = useRef(null);
 
@@ -73,6 +75,24 @@ const InventoryList = () => {
         reader.readAsArrayBuffer(file);
     };
 
+    useEffect(() => {
+        if (inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, []);
+
+    const handleBarcodeScan = (event) => {
+        console.log("Key pressed:", event.key); // Debugging
+
+        if (event.key === "Enter" && barcodeInput.trim() !== "") {
+            console.log("Barcode Entered:", barcodeInput); // Debugging
+
+            sellItem(barcodeInput.trim()); // ✅ Call sell function
+            setBarcodeInput(""); // ✅ Clear input after selling
+
+            event.preventDefault(); // Prevent form submission or page reload
+        }
+    };
     return (
         <div className="bg-white p-6 shadow-md rounded-lg">
             <ToastContainer autoClose={1500}/>
@@ -127,13 +147,38 @@ const InventoryList = () => {
                 </button>
             </form>
 
-            {/* Sell Item Manually */}
-            <h3 className="text-lg font-bold mb-2">Sell an Item</h3>
+            <h2 className="text-2xl font-bold mb-4">Inventory</h2>
+
+            {/* ✅ Hidden Input for Barcode Scanning */}
+            <input
+                ref={inputRef}
+                type="text"
+                placeholder="Scan barcode..."
+                value={barcodeInput}
+                onChange={(e) => setBarcodeInput(e.target.value)}
+                onKeyDown={handleBarcodeScan} // ✅ Handles barcode scan
+                className="absolute opacity-0 w-0 h-0"
+            />
+
+            {/* ✅ Visible Input for Manual Selling */}
             <div className="flex gap-4 mb-6">
-                <input type="text" placeholder="Enter Barcode" value={barcodeInput}
-                       onChange={(e) => setBarcodeInput(e.target.value)} className="border p-2 rounded-md w-full"/>
-                <button onClick={() => sellItem(barcodeInput)} className="bg-green-500 text-white px-4 py-2 rounded-md">
-                    <ShoppingCartIcon className="w-5 h-5"/>
+                <input
+                    type="text"
+                    placeholder="Enter Barcode"
+                    value={barcodeInput}
+                    onChange={(e) => setBarcodeInput(e.target.value)}
+                    onKeyDown={handleBarcodeScan} // ✅ Handles Enter Key
+                    className="border p-2 rounded-md w-full"
+                />
+                <button
+                    onClick={() => {
+                        console.log("Manual Sell Clicked:", barcodeInput); // Debugging
+                        sellItem(barcodeInput);
+                        setBarcodeInput("");
+                    }}
+                    className="bg-green-500 text-white px-4 py-2 rounded-md"
+                >
+                    <ShoppingCartIcon className="w-5 h-5" />
                 </button>
             </div>
 
